@@ -366,6 +366,8 @@ public:
 
     Widget<TChar>& add_child(Widget<TChar>& wid) { return _children.push_back(std::move(wid)); }
 
+    Widget<TChar>& add_child(const Widget<TChar>& wid) { return _children.push_back(wid); }
+
     // Layout/rendering logic
     // ======================
 
