@@ -364,9 +364,9 @@ public:
 
     void set_selectable(bool selectable) { _selectable = selectable; }
 
-    Widget<TChar>& add_child(Widget<TChar>& wid) { return _children.push_back(std::move(wid)); }
+    Widget<TChar>& add_child(Widget<TChar>& wid) { _children.push_back(std::move(wid)); return _children.front(); }
 
-    Widget<TChar>& add_child(const Widget<TChar>& wid) { return _children.push_back(wid); }
+    Widget<TChar>& add_child(const Widget<TChar>& wid) { _children.push_back(wid); return _children.front(); }
 
     // Layout/rendering logic
     // ======================
