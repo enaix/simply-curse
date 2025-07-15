@@ -190,13 +190,19 @@ enum class WidgetLayout
     Text // Just text (std::string), no children
 };
 
-enum class BoxStyle
+class __attribute__((packed)) BoxStyle
 {
-    None,
-    Single,
-    Double
+public:
+    char tl='\0', tr='\0', bl='\0', br='\0', hline='\0', vline='\0';
+
+    [[nodiscard]] bool isna() const { return tl == '\0'; }
 };
 
+static constexpr BoxStyle NoBoxStyle    {'\0', '\0', '\0', '\0', '\0', '\0'};
+static constexpr BoxStyle SingleBoxStyle{'+', '+', '+', '+', '-', '|'};
+static constexpr BoxStyle DoubleBoxStyle{'#', '#', '#', '#', '=', 'H'};
+
+// TODO fix shadow rendering
 enum class ShadowStyle
 {
     None,
@@ -226,19 +232,12 @@ public:
 
     // Operators overload
     Quad& operator+=(const Quad& rhs) { l() += rhs.l(); t() += rhs.t(); r() += rhs.r(); b() += rhs.b(); return *this; }
-
     Quad& operator-=(const Quad& rhs) { l() -= rhs.l(); t() -= rhs.t(); r() -= rhs.r(); b() -= rhs.b(); return *this; }
-
     Quad& operator*=(const Quad& rhs) { l() *= rhs.l(); t() *= rhs.t(); r() *= rhs.r(); b() *= rhs.b(); return *this; }
-
     Quad& operator/=(const Quad& rhs) { l() /= rhs.l(); t() /= rhs.t(); r() /= rhs.r(); b() /= rhs.b(); return *this; }
-
     Quad& operator+=(int a) { l() += a; t() += a; r() += a; b() += a; return *this; }
-
     Quad& operator-=(int a) { l() -= a; t() -= a; r() -= a; b() -= a; return *this; }
-
     Quad& operator*=(int a) { l() *= a; t() *= a; r() *= a; b() *= a; return *this; }
-
     Quad& operator/=(int a) { l() /= a; t() /= a; r() /= a; b() /= a; return *this; }
 };
 
@@ -264,27 +263,17 @@ public:
 
     // Operators overload
     friend Point operator+(const Point& lhs, const Point& rhs) { Point res; res.x() += rhs.x(); res.y() += rhs.y(); return res; }
-
     friend Point operator-(const Point& lhs, const Point& rhs) { Point res; res.x() -= rhs.x(); res.y() -= rhs.y(); return res; }
-
     friend Point operator*(const Point& lhs, const Point& rhs) { Point res; res.x() *= rhs.x(); res.y() *= rhs.y(); return res; }
-
     friend Point operator/(const Point& lhs, const Point& rhs) { Point res; res.x() /= rhs.x(); res.y() /= rhs.y(); return res; }
 
     Point& operator+=(const Point& rhs) { x() += rhs.x(); y() += rhs.y(); return *this; }
-
     Point& operator-=(const Point& rhs) { x() -= rhs.x(); y() -= rhs.y(); return *this; }
-
     Point& operator*=(const Point& rhs) { x() *= rhs.x(); y() *= rhs.y(); return *this; }
-
     Point& operator/=(const Point& rhs) { x() /= rhs.x(); y() /= rhs.y(); return *this; }
-
     Point& operator+=(int a) { x() += a; y() += a; return *this; }
-
     Point& operator-=(int a) { x() -= a; y() -= a; return *this; }
-
     Point& operator*=(int a) { x() *= a; y() *= a; return *this; }
-
     Point& operator/=(int a) { x() /= a; y() /= a; return *this; }
 };
 
@@ -335,31 +324,31 @@ public:
 
     BoxStyle _box_style;
 
-    bool selectable = false;
+    bool _selectable = false;
     EventHandler<TChar> on_event = nullptr;
 
 
     Widget()
         : _xy{0, 0}, _wh{0, 0}, _color(Colors::Primary),
           _margin{0, 0, 0, 0}, _padding{0, 0, 0, 0}, _shadow_style(ShadowStyle::None)
-          , _layout(WidgetLayout::Text), _box_style(BoxStyle::None) {}
+          , _layout(WidgetLayout::Text), _box_style(NoBoxStyle) {}
 
     // Text box
     explicit Widget(std::basic_string<TChar> text, Colors color = Colors::Primary, Quad margin = Quad(0, 0, 0, 0),
-                      const BoxStyle box = BoxStyle::None, const ShadowStyle shadow = ShadowStyle::None)
+                      const BoxStyle box = NoBoxStyle, const ShadowStyle shadow = ShadowStyle::None)
         : _content(std::move(text)), _color(color), _margin(std::move(margin)), _box_style(box), _shadow_style(shadow),
           _layout(WidgetLayout::Text) {}
 
     // Horizontal/Vertical layout
     Widget(WidgetLayout layout, std::vector<Widget> children, Colors color = Colors::Primary,
-             Quad margin = Quad(0, 0, 0, 0), Quad padding = Quad(0, 0, 0, 0), BoxStyle box = BoxStyle::None,
+             Quad margin = Quad(0, 0, 0, 0), Quad padding = Quad(0, 0, 0, 0), BoxStyle box = NoBoxStyle,
              ShadowStyle shadow = ShadowStyle::None, Point xy = {0, 0})
         : _xy(xy), _wh{0, 0}, _color(color), _margin(margin), _padding(padding), _children(std::move(children)),
           _content(), _shadow_style(shadow), _layout(layout), _box_style(box) {}
 
     // Floating layout
     Widget(const Point& xy, std::vector<Widget> children, Colors color = Colors::Primary,
-             Quad margin = Quad(0, 0, 0, 0), Quad padding = Quad(0, 0, 0, 0), BoxStyle box = BoxStyle::None,
+             Quad margin = Quad(0, 0, 0, 0), Quad padding = Quad(0, 0, 0, 0), BoxStyle box = NoBoxStyle,
              ShadowStyle shadow = ShadowStyle::None)
         : _xy(xy), _wh{0, 0}, _color(color), _margin(margin), _padding(padding), _children(std::move(children)),
           _content(), _shadow_style(shadow), _layout(WidgetLayout::Floating), _box_style(box) {}
@@ -373,6 +362,10 @@ public:
 
     void set_text(const std::basic_string<TChar>& s) { _content = s; }
 
+    void set_selectable(bool selectable) { _selectable = selectable; }
+
+    Widget<TChar>& add_child(Widget<TChar>& wid) { return _children.push_back(std::move(wid)); }
+
     // Layout/rendering logic
     // ======================
 
@@ -382,7 +375,7 @@ public:
     {
         if (!active_window)
             return style.get_color(Colors::Disabled);
-        if (selectable)
+        if (_selectable)
         {
             if (selected)
                 return style.get_color(Colors::Selected);
@@ -398,7 +391,7 @@ public:
         if (!active_window)
             return style.get_color(Colors::BorderDisabled);
 
-        if (selectable && selected)
+        if (_selectable && selected)
             return style.get_color(Colors::BorderActive);
 
         return style.get_color(Colors::BorderInactive);
@@ -408,32 +401,11 @@ public:
     static void draw_box(std::vector<std::basic_string<TChar>>& matrix, std::vector<std::vector<TColor>>& color_matrix, int x, int y,
                          int w, int h, BoxStyle style, const TColor& color)
     {
-        char tl, tr, bl, br, hline, vline;
-
-        switch (style)
-        {
-        case BoxStyle::Single:
-            tl = '+';
-            tr = '+';
-            bl = '+';
-            br = '+';
-            hline = '-';
-            vline = '|';
-            break;
-        case BoxStyle::Double:
-            tl = '#';
-            tr = '#';
-            bl = '#';
-            br = '#';
-            hline = '=';
-            vline = 'H';
-            break;
-        default:
-            return; // None
-        }
-
         if (w < 2 || h < 2) return;
         int x2 = x + w - 1, y2 = y + h - 1;
+
+        if (style.isna()) // is a NoBoxStyle
+            return;
 
         auto set = [&](int row, int col, char ch)
         {
@@ -445,21 +417,21 @@ public:
         };
 
         // Corners
-        set(y, x, tl);
-        set(y, x2, tr);
-        set(y2, x, bl);
-        set(y2, x2, br);
+        set(y, x, style.tl);
+        set(y, x2, style.tr);
+        set(y2, x, style.bl);
+        set(y2, x2, style.br);
         // Top and bottom edges
         for (int i = x + 1; i < x2; ++i)
         {
-            set(y, i, hline);
-            set(y2, i, hline);
+            set(y, i, style.hline);
+            set(y2, i, style.hline);
         }
         // Left and right edges
         for (int i = y + 1; i < y2; ++i)
         {
-            set(i, x, vline);
-            set(i, x2, vline);
+            set(i, x, style.vline);
+            set(i, x2, style.vline);
         }
     }
 
@@ -533,7 +505,7 @@ public:
         }
 
         // If box is present, increment size for box border
-        if (_box_style != BoxStyle::None)
+        if (!_box_style.isna())
         {
             //_margin += 1;
             _wh += 2;
@@ -572,7 +544,7 @@ public:
             }
         }
         // Draw box if needed
-        if (_box_style != BoxStyle::None)
+        if (!_box_style.isna())
         {
             ANSIColor border_color = get_border_color(style, active_window, selected).blend(parent_color);
             draw_box(matrix, color_matrix, x, y, _wh.w(), _wh.h(), _box_style, border_color);
@@ -643,8 +615,8 @@ public:
         }
 
         // Fill the rectangle with color if the flag is set
-        int box_offset = (_box_style == BoxStyle::None ? 0 : 2);
-        int shadow_size = (_box_style == BoxStyle::None ? 1 : 2);
+        int box_offset = (_box_style.isna() ? 0 : 2);
+        int shadow_size = (_box_style.isna() ? 1 : 2);
 
         int shadow_rows = _wh.h() - box_offset + shadow_size - 1;
         int shadow_cols = _wh.w() - box_offset + shadow_size - 1;
@@ -684,9 +656,9 @@ public:
 };
 
 
-// Helper: recursively find nearest selectable widget in a direction, returning path
+// Helper: recursively find nearest _selectable widget in a direction, returning path
 template<class TChar>
-inline void find_nearest_selectable_recursive(const std::vector<Widget<TChar>>& widgets, std::vector<int> path,
+void find_nearest_selectable_recursive(const std::vector<Widget<TChar>>& widgets, std::vector<int> path,
                                               const Point& cur_xy, EventType dir, std::vector<int>& best_path,
                                               int& best_dist, const std::vector<int>& current_sel_path = {},
                                               Point accumulated_xy = {})
@@ -699,7 +671,7 @@ inline void find_nearest_selectable_recursive(const std::vector<Widget<TChar>>& 
         if (!current_sel_path.empty() && path == current_sel_path) continue;
 
         Point abs_xy = accumulated_xy + widgets[i]._xy;
-        if (widgets[i].selectable)
+        if (widgets[i]._selectable)
         {
             int dx = abs_xy.x() - cur_xy.x();
             int dy = abs_xy.y() - cur_xy.y();
@@ -828,7 +800,7 @@ public:
     {
         for (int i = 0; i < (int)widgets.size(); ++i)
         {
-            if (widgets[i].selectable)
+            if (widgets[i]._selectable)
             {
                 path.push_back(i);
                 return true;
@@ -912,7 +884,7 @@ public:
             move_child_selector_dir(ev.type);
     }
 
-    // Render all windows, overlays last. Overlays are not selectable.
+    // Render all windows, overlays last. Overlays are not _selectable.
     template <class TColor, template<class> class TStyle>
     void render_all(std::vector<std::basic_string<TChar>>& matrix, std::vector<std::vector<TColor>>& color_matrix,
                     const TStyle<TColor>& style)
@@ -934,7 +906,7 @@ public:
     void render_overlays(std::vector<std::basic_string<TChar>>& matrix, std::vector<std::vector<TColor>>& color_matrix,
                          const TStyle<TColor>& style)
     {
-        // Render overlays last (not selectable, not active)
+        // Render overlays last (not _selectable, not active)
         for (auto& overlay : overlays)
         {
             overlay.layout();
