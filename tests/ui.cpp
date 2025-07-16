@@ -76,6 +76,8 @@ void test_popup_windows()
         ANSIColor(ANSIColor::FG::Default, ANSIColor::BG::Default), // Primary
         ANSIColor(ANSIColor::FG::White, ANSIColor::BG::Red), // Secondary
         ANSIColor(ANSIColor::FG::BrightBlack, ANSIColor::BG::BrightBlue), // Accent
+        ANSIColor(ANSIColor::FG::BrightBlack, ANSIColor::BG::BrightBlue), // Accent 2
+        ANSIColor(ANSIColor::FG::BrightBlack, ANSIColor::BG::BrightBlue), // Accent 3
         ANSIColor(ANSIColor::FG::BrightWhite, ANSIColor::BG::BrightRed), // Selected
         ANSIColor(ANSIColor::FG::White, ANSIColor::BG::Blue), // Inactive
         ANSIColor(ANSIColor::FG::White, ANSIColor::BG::BrightBlue), // Disabled

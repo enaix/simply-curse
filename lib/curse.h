@@ -144,12 +144,14 @@ private:
 
 enum class Colors : int
 {
-    Primary,
-    Secondary,
-    Accent,
-    Selected,
-    Inactive, // Not selected
-    Disabled, // Inactive window
+    Primary,   // Main color
+    Secondary, // Secondary color
+    Accent,    // Color accent (primary)
+    Accent2,   // Color accent (secondary)
+    Accent3,   // Color accent (tertiary)
+    Selected,  // Selected element highlight
+    Inactive,  // Not selected
+    Disabled,  // Inactive window
     BorderActive,
     BorderInactive,
     BorderDisabled, // Inactive window
@@ -195,12 +197,21 @@ class __attribute__((packed)) BoxStyle
 public:
     char tl='\0', tr='\0', bl='\0', br='\0', hline='\0', vline='\0';
 
+    constexpr BoxStyle(char tl_i, char tr_i, char bl_i, char br_i, char hline_i, char vline_i) : tl(tl_i), tr(tr_i), bl(bl_i), br(br_i), hline(hline_i), vline(vline_i) {}
+
+    constexpr BoxStyle(int tl_i, int tr_i, int bl_i, int br_i, int hline_i, int vline_i) : tl(tl_i), tr(tr_i), bl(bl_i), br(br_i), hline(hline_i), vline(vline_i) {}
+
     [[nodiscard]] bool isna() const { return tl == '\0'; }
 };
 
+// Symbolic borders
 static constexpr BoxStyle NoBoxStyle    {'\0', '\0', '\0', '\0', '\0', '\0'};
 static constexpr BoxStyle SingleBoxStyle{'+', '+', '+', '+', '-', '|'};
 static constexpr BoxStyle DoubleBoxStyle{'#', '#', '#', '#', '=', 'H'};
+
+// Box-drawing borders
+//static constexpr BoxStyle SingleBoxStyleDOS{0xda, 0xbf, 0xc0, 0xd9, 0xc4, 0xb3};
+//static constexpr BoxStyle DoubleBoxStyleDOS{'╔', '╗', '╚', '╝', '═', '║'};
 
 // TODO fix shadow rendering
 enum class ShadowStyle
