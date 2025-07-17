@@ -379,6 +379,11 @@ public:
 
     Widget<TChar>& add_child(const Widget<TChar>& wid) { _children.push_back(wid); return _children.front(); }
 
+    Widget<TChar>& at(std::size_t i) { return _children[i]; }
+    Widget<TChar>& back() { return _children.back(); }
+    Widget<TChar>& front() { return _children.front(); }
+    std::size_t widgets_num() { return _children.size(); }
+
     // Layout/rendering logic
     // ======================
 
