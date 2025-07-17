@@ -76,11 +76,11 @@ public:
         None = 0
     };
 
-    explicit ANSIColor(FG fg = FG::None, BG bg = BG::None) : _fg(fg), _bg(bg) {}
+    constexpr explicit ANSIColor(FG fg = FG::None, BG bg = BG::None) : _fg(fg), _bg(bg) {}
 
-    ANSIColor(const ANSIColor& other) = default;
+    constexpr ANSIColor(const ANSIColor& other) = default;
 
-    ANSIColor(ANSIColor&& other) noexcept : _fg(other._fg), _bg(other._bg) {}
+    constexpr ANSIColor(ANSIColor&& other) noexcept : _fg(other._fg), _bg(other._bg) {}
 
     ANSIColor& operator=(const ANSIColor& other) = default;
 
@@ -98,28 +98,28 @@ public:
         return oss.str();
     }
 
-    static std::string reset() { return "\033[0m"; }
+    static constexpr std::string reset() { return "\033[0m"; }
 
-    static ANSIColor None() { return ANSIColor(FG::None, BG::None); }
-    [[nodiscard]] bool isna() const { return *this == ANSIColor::None(); }
+    static constexpr ANSIColor None() { return ANSIColor(FG::None, BG::None); }
+    [[nodiscard]] constexpr bool isna() const { return *this == ANSIColor::None(); }
 
-    bool operator==(const ANSIColor& other) const
+    constexpr bool operator==(const ANSIColor& other) const
     {
         return _fg == other._fg && _bg == other._bg;
     }
 
-    bool operator!=(const ANSIColor& other) const
+    constexpr bool operator!=(const ANSIColor& other) const
     {
         return !(*this == other);
     }
 
-    [[nodiscard]] FG fg() const { return _fg; }
-    [[nodiscard]] BG bg() const { return _bg; }
-    [[nodiscard]] FG& fg() { return _fg; }
-    [[nodiscard]] BG& bg() { return _bg; }
+    [[nodiscard]] constexpr FG fg() const { return _fg; }
+    [[nodiscard]] constexpr BG bg() const { return _bg; }
+    [[nodiscard]] constexpr FG& fg() { return _fg; }
+    [[nodiscard]] constexpr BG& bg() { return _bg; }
 
     // Mix 2 colors together
-    [[nodiscard]] ANSIColor blend(const ANSIColor& with) const
+    [[nodiscard]] constexpr ANSIColor blend(const ANSIColor& with) const
     {
         ANSIColor res = *this;
         if (res.fg() == ANSIColor::FG::None) res.fg() = with.fg();
@@ -128,7 +128,7 @@ public:
     }
 
     // Overlay this color with another
-    [[nodiscard]] ANSIColor overlay(const ANSIColor& with) const
+    [[nodiscard]] constexpr ANSIColor overlay(const ANSIColor& with) const
     {
         ANSIColor res = *this;
         if (with.fg() != ANSIColor::FG::None) res.fg() = with.fg();
@@ -169,9 +169,9 @@ protected:
 
 public:
     template <class... TColors>
-    explicit AppStyle(TColors... c) : _colors{c...} {}
+    constexpr explicit AppStyle(TColors... c) : _colors{c...} {}
 
-    TColor get_color(Colors color) const
+    constexpr TColor get_color(Colors color) const
     {
         if (_color_overload != -1)
             return _colors[_color_overload];
