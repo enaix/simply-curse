@@ -13,6 +13,7 @@
 #include <string>
 #include <sstream>
 #include <tuple>
+#include <limits>
 #include <cassert>
 
 
@@ -743,7 +744,7 @@ public:
     std::vector<Widget<TChar>> overlays; // Overlay windows, not selectable
     std::vector<std::size_t> flags;
 
-    int _dbg_best_dist = INT_MAX; // DEBUG: best distance in selector
+    int _dbg_best_dist = std::numeric_limits<int>::max(); // DEBUG: best distance in selector
 
     WindowStack() = default;
 
@@ -850,7 +851,7 @@ public:
             cur_level = &(*cur_level)[idx]._children;
         }
         std::vector<int> best_path;
-        _dbg_best_dist = INT_MAX;
+        _dbg_best_dist = std::numeric_limits<int>::max();
         find_nearest_selectable_recursive(root._children, {}, cur_xy, dir, best_path, _dbg_best_dist, sel_path);
         if (!best_path.empty()) sel_path = best_path;
     }
