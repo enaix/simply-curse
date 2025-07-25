@@ -973,6 +973,18 @@ public:
         _first_frame = true;
     }
 
+    void reset_output_matrix()
+    {
+        for (std::size_t i = 0; i < _output_matrix.size(); i++)
+        {
+            for (std::size_t j = 0; j < _output_matrix[0].size(); j++)
+            {
+                _output_matrix[i][j] = ' ';
+                _color_matrix[i][j] = TColor::None();
+            }
+        }
+    }
+
     void set_cell(std::size_t row, std::size_t col, char value, const TColor& color = TColor())
     {
         if (row < _rows && col < _cols)

@@ -189,6 +189,8 @@ void test_popup_windows()
     debug_win._wh = {terminal._cols, 4};
     winstack.push_overlay(debug_win);
 
+    terminal.init_matrix(term_h, term_w);
+
     // Main event loop
     while (!winstack.stack.empty())
     {
@@ -196,7 +198,7 @@ void test_popup_windows()
         winstack.overlays[0].set_text(get_debug_text(winstack));
         // --- End debug overlay ---
 
-        terminal.init_matrix(term_h, term_w);
+	terminal.reset_output_matrix();
         winstack.render_all(terminal._output_matrix, terminal._color_matrix, style);
         winstack.render_overlays(terminal._output_matrix, terminal._color_matrix, style);
         terminal.render_matrix();
