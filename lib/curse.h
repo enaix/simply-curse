@@ -385,6 +385,22 @@ public:
     Widget<TChar>& front() { return _children.front(); }
     std::size_t widgets_num() { return _children.size(); }
 
+    void refresh(Widget<TChar>&& lhs) // Similar to move(), but preserves current widget position
+    {
+        // we don't copy _xy
+        _wh = lhs._wh;
+        _color = lhs._color;
+        _margin = lhs._margin;
+        _padding = lhs._padding;
+        _children = lhs._children;
+        _content = lhs._content;
+        _shadow_style = lhs._shadow_style;
+        _layout = lhs._layout;
+        _box_style = lhs._box_style;
+        _selectable = lhs._selectable;
+        on_event = lhs.on_event;
+    }
+
     // Layout/rendering logic
     // ======================
 
@@ -929,7 +945,7 @@ public:
         for (auto& overlay : overlays)
         {
             overlay.layout();
-            overlay.render(matrix, color_matrix, style, false, overlay._xy.x(), overlay._xy.y(), TColor::None(), true);
+            overlay.render(matrix, color_matrix, style, true, overlay._xy.x(), overlay._xy.y(), TColor::None(), true);
         }
     }
 };
