@@ -873,7 +873,7 @@ public:
     }
 
     // Route event to selected window and its selected child (recursive, path-based)
-    void handle_event(const IPEvent& ev)
+    bool handle_event(const IPEvent& ev)
     {
         if (selector_idx >= 0 && selector_idx < stack.size())
         {
@@ -901,22 +901,28 @@ public:
                 }
                 if (cur && cur->on_event && cur->on_event(cur, this, ev, subpath))
                 {
-                    return;
+                    return true;
                 }
             }
             // If not handled, process at root widget level
             if (root->on_event && root->on_event(root, this, ev, {}))
-                return;
+                return true;
 
             // THEN we handle it on window level
             window_event_process(ev);
+            return false;
         }
+        return false;
     }
 
-    void window_event_process(const IPEvent& ev)
+    bool window_event_process(const IPEvent& ev)
     {
         if (int(ev.type) >= (int)EventType::ArrowUp && int(ev.type) <= (int)EventType::ArrowRight)
+        {
             move_child_selector_dir(ev.type);
+            return true;
+        }
+        return false;
     }
 
     // Render all windows, overlays last. Overlays are not _selectable.
