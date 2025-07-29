@@ -207,6 +207,7 @@ public:
 
 // Symbolic borders
 static constexpr BoxStyle NoBoxStyle    {'\0', '\0', '\0', '\0', '\0', '\0'};
+static constexpr BoxStyle PlainBoxStyle {' ', ' ', ' ', ' ', ' ', ' '};
 static constexpr BoxStyle SingleBoxStyle{'+', '+', '+', '+', '-', '|'};
 static constexpr BoxStyle DoubleBoxStyle{'#', '#', '#', '#', '=', 'H'};
 
@@ -334,7 +335,7 @@ public:
 
     WidgetLayout _layout;
 
-    BoxStyle _box_style;
+    const BoxStyle* _box_style;
 
     bool _selectable = false;
     EventHandler<TChar> on_event = nullptr;
@@ -343,24 +344,24 @@ public:
     Widget()
         : _xy{0, 0}, _wh{0, 0}, _color(Colors::Primary),
           _margin{0, 0, 0, 0}, _padding{0, 0, 0, 0}, _shadow_style(ShadowStyle::None)
-          , _layout(WidgetLayout::Text), _box_style(NoBoxStyle) {}
+          , _layout(WidgetLayout::Text), _box_style(nullptr) {}
 
     // Text box
     explicit Widget(std::basic_string<TChar> text, Colors color = Colors::Primary, Quad margin = Quad(0, 0, 0, 0),
-                      const BoxStyle box = NoBoxStyle, const ShadowStyle shadow = ShadowStyle::None)
+                      const BoxStyle* box = nullptr, const ShadowStyle shadow = ShadowStyle::None)
         : _content(std::move(text)), _color(color), _margin(std::move(margin)), _box_style(box), _shadow_style(shadow),
           _layout(WidgetLayout::Text) {}
 
     // Horizontal/Vertical layout
     Widget(WidgetLayout layout, std::vector<Widget> children, Colors color = Colors::Primary,
-             Quad margin = Quad(0, 0, 0, 0), Quad padding = Quad(0, 0, 0, 0), BoxStyle box = NoBoxStyle,
+             Quad margin = Quad(0, 0, 0, 0), Quad padding = Quad(0, 0, 0, 0), const BoxStyle* box = nullptr,
              ShadowStyle shadow = ShadowStyle::None, Point xy = {0, 0})
         : _xy(xy), _wh{0, 0}, _color(color), _margin(margin), _padding(padding), _children(std::move(children)),
           _content(), _shadow_style(shadow), _layout(layout), _box_style(box) {}
 
     // Floating layout
     Widget(const Point& xy, std::vector<Widget> children, Colors color = Colors::Primary,
-             Quad margin = Quad(0, 0, 0, 0), Quad padding = Quad(0, 0, 0, 0), BoxStyle box = NoBoxStyle,
+             Quad margin = Quad(0, 0, 0, 0), Quad padding = Quad(0, 0, 0, 0), const BoxStyle* box = nullptr,
              ShadowStyle shadow = ShadowStyle::None)
         : _xy(xy), _wh{0, 0}, _color(color), _margin(margin), _padding(padding), _children(std::move(children)),
           _content(), _shadow_style(shadow), _layout(WidgetLayout::Floating), _box_style(box) {}
@@ -368,7 +369,7 @@ public:
     // Full constructor
     Widget(const Point& xy, const Point& wh, Colors color, Quad margin, Quad padding,
              std::vector<Widget> children, std::basic_string<TChar> content, ShadowStyle shadow, WidgetLayout layout,
-             BoxStyle box)
+             const BoxStyle* box)
         : _xy(xy), _wh(wh), _color(color), _margin(margin), _padding(padding), _children(std::move(children)),
           _content(std::move(content)), _shadow_style(shadow), _layout(layout), _box_style(box) {}
 
@@ -540,7 +541,7 @@ public:
         }
 
         // If box is present, increment size for box border
-        if (!_box_style.isna())
+        if (_box_style && !_box_style->isna())
         {
             //_margin += 1;
             _wh += 2;
@@ -579,10 +580,10 @@ public:
             }
         }
         // Draw box if needed
-        if (!_box_style.isna())
+        if (_box_style && !_box_style->isna())
         {
             ANSIColor border_color = get_border_color(style, active_window, selected).blend(parent_color);
-            draw_box(matrix, color_matrix, x, y, _wh.w(), _wh.h(), _box_style, border_color);
+            draw_box(matrix, color_matrix, x, y, _wh.w(), _wh.h(), *_box_style, border_color);
             x += 1;
             y += 1;
         }
@@ -650,8 +651,8 @@ public:
         }
 
         // Fill the rectangle with color if the flag is set
-        int box_offset = (_box_style.isna() ? 0 : 2);
-        int shadow_size = (_box_style.isna() ? 1 : 2);
+        int box_offset = ((_box_style && _box_style->isna()) ? 0 : 2);
+        int shadow_size = ((_box_style && _box_style->isna()) ? 1 : 2);
 
         int shadow_rows = _wh.h() - box_offset + shadow_size - 1;
         int shadow_cols = _wh.w() - box_offset + shadow_size - 1;

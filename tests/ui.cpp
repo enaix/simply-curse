@@ -85,11 +85,13 @@ void test_popup_windows()
         ANSIColor(ANSIColor::FG::White, ANSIColor::BG::Blue), // BorderInactive
         ANSIColor(ANSIColor::FG::White, ANSIColor::BG::BrightBlue) // BorderDisabled
     );
+    auto single_box = SingleBoxStyle;
+    auto double_box = DoubleBoxStyle;
 
     WindowStack<TChar> winstack;
     for (int i = 0; i < 3; ++i)
     {
-        Widget<TChar> close_btn("[X]", Colors::Accent, Quad(0, 0, 0, 0), SingleBoxStyle, ShadowStyle::None);
+        Widget<TChar> close_btn("[X]", Colors::Accent, Quad(0, 0, 0, 0), &single_box, ShadowStyle::None);
         close_btn.set_selectable(true);
         close_btn.on_event = [](Widget<TChar>* self, WindowStack<TChar>* window, const IPEvent& ev,
                                 const std::vector<int>& path) -> bool
@@ -109,7 +111,7 @@ void test_popup_windows()
             if ((ev.type == EventType::Select || ev.type == EventType::Click) && window)
             {
                 // Open a new popup window
-                Widget<TChar> close_btn2("[X]", Colors::Accent, Quad(0, 0, 0, 0), SingleBoxStyle,
+                Widget<TChar> close_btn2("[X]", Colors::Accent, Quad(0, 0, 0, 0), &SingleBoxStyle,
                                     ShadowStyle::None);
                 close_btn2.set_selectable(true);
                 close_btn2.on_event = [](Widget<TChar>* self, WindowStack<TChar>* window, const IPEvent& ev,
@@ -124,9 +126,9 @@ void test_popup_windows()
                 };
                 Widget<TChar> popup2(WidgetLayout::Vertical, {
                                     close_btn2,
-                                    Widget<TChar>("New popup!", Colors::Primary, Quad(1, 1, 1, 1), NoBoxStyle,
+                                    Widget<TChar>("New popup!", Colors::Primary, Quad(1, 1, 1, 1), nullptr,
                                              ShadowStyle::None)
-                                }, Colors::Primary, Quad(2, 2, 2, 2), Quad(1, 1, 1, 1), NoBoxStyle,
+                                }, Colors::Primary, Quad(2, 2, 2, 2), Quad(1, 1, 1, 1), nullptr,
                                 ShadowStyle::Shadow, {10, 5});
                 popup2.on_event = [](Widget<TChar>* self, WindowStack<TChar>* window, const IPEvent& ev,
                                      const std::vector<int>& path) -> bool
@@ -147,8 +149,8 @@ void test_popup_windows()
                            close_btn,
                            open_btn,
                            Widget("Popup window " + std::to_string(i + 1), Colors::Primary, Quad(1, 1, 1, 1),
-                                    NoBoxStyle, ShadowStyle::None)
-                       }, Colors::Primary, Quad(2, 2, 2, 2), Quad(1, 1, 1, 1), DoubleBoxStyle,
+                                    nullptr, ShadowStyle::None)
+                       }, Colors::Primary, Quad(2, 2, 2, 2), Quad(1, 1, 1, 1), &double_box,
                        ShadowStyle::Shadow, {5 * i, 3 * i});
         popup.on_event = [](Widget<TChar>* self, WindowStack<TChar>* window, const IPEvent& ev, const std::vector<int>& path) -> bool
         {
@@ -183,7 +185,7 @@ void test_popup_windows()
         return dbg.str();
     };
 
-    Widget debug_win(get_debug_text(winstack), Colors::Inactive, Quad(0, 0, 0, 0), SingleBoxStyle,
+    Widget debug_win(get_debug_text(winstack), Colors::Inactive, Quad(0, 0, 0, 0), &single_box,
                        ShadowStyle::Fill);
     debug_win._xy = {0, term_h - 4};
     debug_win._wh = {terminal._cols, 4};
