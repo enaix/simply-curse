@@ -389,17 +389,17 @@ public:
     void refresh(Widget<TChar>&& lhs) // Similar to move(), but preserves current widget position
     {
         // we don't copy _xy
-        _wh = lhs._wh;
-        _color = lhs._color;
-        _margin = lhs._margin;
-        _padding = lhs._padding;
-        _children = lhs._children;
-        _content = lhs._content;
-        _shadow_style = lhs._shadow_style;
-        _layout = lhs._layout;
-        _box_style = lhs._box_style;
-        _selectable = lhs._selectable;
-        on_event = lhs.on_event;
+        _wh = std::move(lhs._wh);
+        _color = std::move(lhs._color);
+        _margin = std::move(lhs._margin);
+        _padding = std::move(lhs._padding);
+        _children = std::move(lhs._children);
+        _content = std::move(lhs._content);
+        _shadow_style = std::move(lhs._shadow_style);
+        _layout = std::move(lhs._layout);
+        _box_style = std::move(lhs._box_style);
+        _selectable = std::move(lhs._selectable);
+        on_event = std::move(lhs.on_event);
     }
 
     // Layout/rendering logic
