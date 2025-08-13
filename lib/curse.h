@@ -939,7 +939,7 @@ public:
             int idx = (start + i) % n;
             bool active = (idx == selector_idx);
             stack[idx].layout();
-            stack[idx].render(matrix, color_matrix, style, active, 2 + 2 * idx, 2 + 2 * idx, TColor::None(), true, {},
+            stack[idx].render(matrix, color_matrix, style, active, 2 + 2 * idx + stack[idx]._xy.x(), 2 + 2 * idx + stack[idx]._xy.y(), TColor::None(), true, {},
                               (active ? &selection_paths[idx] : nullptr));
         }
     }
