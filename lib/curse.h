@@ -407,9 +407,9 @@ public:
 
     // Helper to get effective color from palette if set
     template <class TStyle>
-    ANSIColor get_effective_color(const TStyle& style, bool active_window, bool selected) const
+    ANSIColor get_effective_color(const TStyle& style, bool active_window, bool win_always_active, bool selected) const
     {
-        if (!active_window)
+        if (!active_window && !win_always_active)
             return style.get_color(Colors::Disabled);
         if (_selectable)
         {
@@ -550,7 +550,7 @@ public:
 
     template <class TColor, template<class> class TStyle>
     void render(std::vector<std::basic_string<TChar>>& matrix, std::vector<std::vector<TColor>>& color_matrix,
-                const TStyle<TColor>& style, bool active_window, int x, int y,
+                const TStyle<TColor>& style, bool active_window, bool win_always_active, int x, int y,
                 const TColor& parent_color = TColor::None(), bool top_level = false, std::vector<int> cur_path = {},
                 const std::vector<int>* selected_path = nullptr)
     {
@@ -560,7 +560,7 @@ public:
         else
             selected = false;
 
-        ANSIColor effective_color = get_effective_color(style, active_window, selected).blend(parent_color);
+        ANSIColor effective_color = get_effective_color(style, active_window, win_always_active, selected).blend(parent_color);
         auto [ml, mt, mr, mb] = _margin.tup();
         auto [pl, pt, pr, pb] = _padding.tup();
         // Opaque fill for top-level window
@@ -600,7 +600,7 @@ public:
                     cur_path.front() = i;
                     if (i > 0)
                         cur_x += pl;
-                    _children[i].render(matrix, color_matrix, style, active_window, cur_x, y + mt, effective_color,
+                    _children[i].render(matrix, color_matrix, style, active_window, win_always_active, cur_x, y + mt, effective_color,
                                         false, cur_path, selected_path);
                     if (i < _children.size() - 1)
                         cur_x += pr;
@@ -616,7 +616,7 @@ public:
                     cur_path.front() = i;
                     if (i > 0)
                         cur_y += pt;
-                    _children[i].render(matrix, color_matrix, style, active_window, x + ml, cur_y, effective_color,
+                    _children[i].render(matrix, color_matrix, style, active_window, win_always_active, x + ml, cur_y, effective_color,
                                         false, cur_path, selected_path);
                     if (i < _children.size() - 1)
                         cur_y += pb;
@@ -629,7 +629,7 @@ public:
                 for (auto& child : _children)
                 {
                     cur_path.front()++;
-                    child.render(matrix, color_matrix, style, active_window, x + child._xy.x() + ml,
+                    child.render(matrix, color_matrix, style, active_window, win_always_active, x + child._xy.x() + ml,
                                  y + child._xy.y() + mt, effective_color, false, cur_path, selected_path);
                 }
                 break;
@@ -746,7 +746,8 @@ void find_nearest_selectable_recursive(const std::vector<Widget<TChar>>& widgets
 
 enum class IPWindowFlags : std::size_t
 {
-    Modal = 0x1,
+    Modal = 0b1,
+    AlwaysActive = 0b10,
 };
 
 
@@ -938,8 +939,10 @@ public:
         {
             int idx = (start + i) % n;
             bool active = (idx == selector_idx);
+            // Paint the window in disabled style only if it has this flag
+            bool win_always_active = (flags[idx] & (std::size_t)IPWindowFlags::AlwaysActive);
             stack[idx].layout();
-            stack[idx].render(matrix, color_matrix, style, active, 2 + 2 * idx + stack[idx]._xy.x(), 2 + 2 * idx + stack[idx]._xy.y(), TColor::None(), true, {},
+            stack[idx].render(matrix, color_matrix, style, active, win_always_active, 2 + 2 * idx + stack[idx]._xy.x(), 2 + 2 * idx + stack[idx]._xy.y(), TColor::None(), true, {},
                               (active ? &selection_paths[idx] : nullptr));
         }
     }
@@ -952,7 +955,7 @@ public:
         for (auto& overlay : overlays)
         {
             overlay.layout();
-            overlay.render(matrix, color_matrix, style, true, overlay._xy.x(), overlay._xy.y(), TColor::None(), true);
+            overlay.render(matrix, color_matrix, style, true, false, overlay._xy.x(), overlay._xy.y(), TColor::None(), true);
         }
     }
 };
