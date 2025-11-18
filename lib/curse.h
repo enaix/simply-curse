@@ -757,6 +757,7 @@ class WindowStack
 {
 public:
     std::vector<Widget<TChar>> stack; // Topmost is last
+    std::vector<int> window_ids;
     int selector_idx = -1; // Index of selected widget in stack
     std::vector<std::vector<int>> selection_paths; // Selected widget in each window
     std::vector<Widget<TChar>> overlays; // Overlay windows, not selectable
@@ -766,9 +767,10 @@ public:
 
     WindowStack() = default;
 
-    void push(Widget<TChar> w, std::size_t win_flags = 0)
+    void push(Widget<TChar> w, std::size_t win_flags = 0, const int id = -1)
     {
         stack.push_back(std::move(w));
+        window_ids.push_back(id);
         flags.push_back(win_flags);
         selector_idx = static_cast<int>(stack.size()) - 1;
         // Default: select first selectable child in new window
@@ -796,6 +798,7 @@ public:
 
             stack.erase(stack.begin() + index);
             selection_paths.erase(selection_paths.begin() + index);
+            window_ids.erase(window_ids.begin() + index);
             flags.erase(flags.begin() + index);
 
             if (stack.size() - 1 >= index)
@@ -957,6 +960,17 @@ public:
             overlay.layout();
             overlay.render(matrix, color_matrix, style, true, false, overlay._xy.x(), overlay._xy.y(), TColor::None(), true);
         }
+    }
+
+    // Find the window according to its id. Returns the first match
+    int find(const int id)
+    {
+        for (int i = 0; i < window_ids.size(); i++)
+        {
+            if (window_ids[i] == id)
+                return i;
+        }
+        return -1;
     }
 };
 
