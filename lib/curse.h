@@ -15,6 +15,8 @@
 #include <tuple>
 #include <limits>
 #include <cassert>
+#include <csignal>
+#include <atomic>
 
 
 namespace curse
@@ -975,6 +977,12 @@ public:
 };
 
 
+#ifdef CURSE_IS_POSIX
+static termios original_term{}; // Store original terminal state
+static std::atomic_bool term_modified = false;
+#endif
+
+
 // POSIX terminal output with a double buffer
 template<class TColor, class TChar>
 class CurseTerminal
@@ -995,7 +1003,13 @@ public:
     std::size_t _cols = 0;
     bool _first_frame = true;
 
-    explicit CurseTerminal(std::ostream& os) : _os(os) {}
+    explicit CurseTerminal(std::ostream& os) : _os(os)
+    {
+#ifdef CURSE_IS_POSIX
+        // Save the original terminal state once at initialization
+        tcgetattr(STDIN_FILENO, &original_term);
+#endif
+    }
 
     /*void set_data(const std::vector<GSymbol>& stack, const std::array<std::size_t, ContextSize>& context) {
         _stack = stack;
@@ -1085,18 +1099,37 @@ public:
         os << "\033[?25h\033[?1049l" << std::flush; // Show cursor, exit alt buffer
     }
 
+    static void signal_handler(int signal)
+    {
+#ifdef CURSE_IS_POSIX
+        // Restore original terminal attributes if they were modified
+        if (term_modified.load())
+        {
+            tcsetattr(STDIN_FILENO, TCSANOW, &original_term);
+            term_modified = false;
+        }
+#endif
+        restore_terminal();
+        exit(signal);
+    }
+
+    static void init_signal_handler() { std::signal(SIGINT, signal_handler); }
+
     // Helper for raw input
     static int getch()
     {
 #ifdef CURSE_IS_POSIX
-        termios oldt{};
-        termios newt{};
-        tcgetattr(STDIN_FILENO, &oldt);
-        newt = oldt;
+        termios newt = original_term;
         newt.c_lflag &= ~(ICANON | ECHO);
         tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+        term_modified = true;
+
         int c = getchar();
-        tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+
+        // Restore immediately after reading
+        tcsetattr(STDIN_FILENO, TCSANOW, &original_term);
+        term_modified = false;
+
         return c;
 #else
         return -1;
