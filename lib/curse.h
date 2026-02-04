@@ -639,8 +639,8 @@ public:
         case WidgetLayout::Text:
             {
                 int cur_x = x + ml, cur_y = y + mt;
-                if (cur_y < static_cast<int>(matrix.size()) && cur_x + static_cast<int>(_content.size()) <= static_cast<
-                    int>(matrix[0].size()))
+
+                if (matrix.size() > 0 && cur_y < static_cast<int>(matrix.size()) && cur_x + static_cast<int>(_content.size()) <= static_cast<int>(matrix[0].size()))
                 {
                     for (size_t i = 0; i < _content.size(); ++i)
                     {
