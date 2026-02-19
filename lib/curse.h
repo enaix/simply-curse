@@ -751,6 +751,8 @@ enum class IPWindowFlags : std::size_t
     Modal = 0b1,
     AlwaysActive = 0b10,
 };
+// Last window flag
+static constexpr IPWindowFlags IPWindowFlagsLast = IPWindowFlags::AlwaysActive;
 
 
 // Window stack and selector logic
