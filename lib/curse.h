@@ -388,20 +388,20 @@ public:
     Widget<TChar>& front() { return _children.front(); }
     std::size_t widgets_num() { return _children.size(); }
 
-    void refresh(Widget<TChar>&& lhs) // Similar to move(), but preserves current widget position
+    void refresh(const Widget<TChar>& rhs) // Similar to =, but preserves current widget position
     {
         // we don't copy _xy
-        _wh = std::move(lhs._wh);
-        _color = std::move(lhs._color);
-        _margin = std::move(lhs._margin);
-        _padding = std::move(lhs._padding);
-        _children = std::move(lhs._children);
-        _content = std::move(lhs._content);
-        _shadow_style = std::move(lhs._shadow_style);
-        _layout = std::move(lhs._layout);
-        _box_style = std::move(lhs._box_style);
-        _selectable = std::move(lhs._selectable);
-        on_event = std::move(lhs.on_event);
+        _wh = rhs._wh;
+        _color = rhs._color;
+        _margin = rhs._margin;
+        _padding = rhs._padding;
+        _children = rhs._children;
+        _content = rhs._content;
+        _shadow_style = rhs._shadow_style;
+        _layout = rhs._layout;
+        _box_style = rhs._box_style;
+        _selectable = rhs._selectable;
+        on_event = rhs.on_event;
     }
 
     // Layout/rendering logic
