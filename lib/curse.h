@@ -640,10 +640,15 @@ public:
             {
                 int cur_x = x + ml, cur_y = y + mt;
 
-                if (matrix.size() > 0 && cur_y < static_cast<int>(matrix.size()) && cur_x + static_cast<int>(_content.size()) <= static_cast<int>(matrix[0].size()))
+                if (!matrix.empty() && cur_y >= 0 && cur_y < static_cast<int>(matrix.size()) && cur_x < static_cast<int>(matrix[0].size()))
                 {
-                    for (size_t i = 0; i < _content.size(); ++i)
+                    // Clamp characters
+                    int start_i = (cur_x < 0) ? -cur_x : 0;
+                    int draw_x = cur_x + start_i;
+
+                    for (size_t i = start_i; i < _content.size(); ++i, ++draw_x)
                     {
+                        if (draw_x >= static_cast<int>(matrix[0].size())) break;
                         matrix[cur_y][cur_x + i] = _content[i];
                         color_matrix[cur_y][cur_x + i] = color_matrix[cur_y][cur_x + i].overlay(effective_color);
                     }
@@ -1018,15 +1023,22 @@ public:
         _context = context;
     }*/
 
-    void init_matrix(std::size_t rows, std::size_t cols)
+    [[nodiscard]] std::size_t rows() const { return _rows; }
+    [[nodiscard]] std::size_t cols() const { return _cols; }
+
+    void update_terminal_size()
     {
-        _rows = rows;
-        _cols = cols;
-        _output_matrix.assign(rows, std::basic_string<TChar>(cols, ' '));
-        _color_matrix.assign(rows, std::vector<TColor>(cols, TColor::None()));
-        _prev_output_matrix.assign(rows, std::basic_string<TChar>(cols, ' '));
-        _prev_color_matrix.assign(rows, std::vector<TColor>(cols, TColor::None()));
-        _first_frame = true;
+        std::size_t new_rows = 24, new_cols = 80;
+    #ifdef CURSE_IS_POSIX
+        winsize w{};
+        if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == 0)
+        {
+            new_rows = w.ws_row;
+            new_cols = w.ws_col;
+        }
+    #endif
+        if (new_rows != _rows || new_cols != _cols)
+            init_matrix(new_rows, new_cols);   // re-alloc only when size actually changed
     }
 
     void reset_output_matrix()
@@ -1104,6 +1116,7 @@ public:
     static void signal_handler(int signal)
     {
 #ifdef CURSE_IS_POSIX
+        if (signal == SIGWINCH) return;
         // Restore original terminal attributes if they were modified
         if (term_modified.load())
         {
@@ -1115,7 +1128,13 @@ public:
         exit(signal);
     }
 
-    static void init_signal_handler() { std::signal(SIGINT, signal_handler); }
+    static void init_signal_handler()
+    {
+#ifdef CURSE_IS_POSIX
+        std::signal(SIGINT, signal_handler);
+        std::signal(SIGWINCH, signal_handler);
+#endif
+    }
 
     // Helper for raw input
     static int getch()
@@ -1138,7 +1157,7 @@ public:
 #endif
     }
 
-    static int get_terminal_width()
+    /*static int get_terminal_width()
     {
 #ifdef CURSE_IS_POSIX
         winsize w{};
@@ -1154,12 +1173,24 @@ public:
         if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == 0) return w.ws_row;
 #endif
         return 24;
-    }
+    }*/
 
     void print()
     {
         // Render the output
         render_matrix();
+    }
+
+protected:
+    void init_matrix(std::size_t rows, std::size_t cols)
+    {
+        _rows = rows;
+        _cols = cols;
+        _output_matrix.assign(rows, std::basic_string<TChar>(cols, ' '));
+        _color_matrix.assign(rows, std::vector<TColor>(cols, TColor::None()));
+        _prev_output_matrix.assign(rows, std::basic_string<TChar>(cols, ' '));
+        _prev_color_matrix.assign(rows, std::vector<TColor>(cols, TColor::None()));
+        _first_frame = true;
     }
 };
 

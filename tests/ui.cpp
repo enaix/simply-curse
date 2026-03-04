@@ -67,9 +67,10 @@ void test_popup_windows()
 {
     CurseTerminal<ANSIColor, TChar> terminal(std::cout);
     terminal.init_renderer();
-    int term_w = terminal.get_terminal_width();
-    int term_h = terminal.get_terminal_height();
-    terminal.init_matrix(term_h, term_w);
+    //int term_w = terminal.get_terminal_width();
+    //int term_h = terminal.get_terminal_height();
+    //terminal.init_matrix(term_h, term_w);
+    terminal.update_terminal_size();
 
     // Define a palette
     AppStyle<ANSIColor> style(
@@ -187,11 +188,11 @@ void test_popup_windows()
 
     Widget debug_win(get_debug_text(winstack), Colors::Inactive, Quad(0, 0, 0, 0), &single_box,
                        ShadowStyle::Fill);
-    debug_win._xy = {0, term_h - 4};
+    debug_win._xy = {0, terminal.rows() - 4};
     debug_win._wh = {terminal._cols, 4};
     winstack.push_overlay(debug_win);
 
-    terminal.init_matrix(term_h, term_w);
+    //terminal.init_matrix(term_h, term_w);
 
     // Main event loop
     while (!winstack.stack.empty())
@@ -200,7 +201,8 @@ void test_popup_windows()
         winstack.overlays[0].set_text(get_debug_text(winstack));
         // --- End debug overlay ---
 
-	terminal.reset_output_matrix();
+        terminal.update_terminal_size();
+        terminal.reset_output_matrix();
         winstack.render_all(terminal._output_matrix, terminal._color_matrix, style);
         winstack.render_overlays(terminal._output_matrix, terminal._color_matrix, style);
         terminal.render_matrix();
