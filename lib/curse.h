@@ -176,6 +176,8 @@ public:
 
     constexpr TColor get_color(Colors color) const
     {
+        if (color >= Colors::None)
+            throw std::invalid_argument("Bad color");
         if (_color_overload != -1)
             return _colors[_color_overload];
 
@@ -419,7 +421,7 @@ public:
                 return style.get_color(Colors::Selected);
             return style.get_color(Colors::Inactive);
         }
-        return style.get_color(_color);
+        return style.get_color((_color != Colors::None ? _color : Colors::Primary));
     }
 
     // Helper to get effective border color from palette if set
