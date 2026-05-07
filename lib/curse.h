@@ -601,7 +601,7 @@ public:
                 int cur_x = x + ml;
                 for (int i = 0; i < _children.size(); i++)
                 {
-                    cur_path.front() = i;
+                    cur_path.back() = i;
                     if (i > 0)
                         cur_x += pl;
                     _children[i].render(matrix, color_matrix, style, active_window, win_always_active, cur_x, y + mt, effective_color,
@@ -617,7 +617,7 @@ public:
                 int cur_y = y + mt;
                 for (int i = 0; i < _children.size(); i++)
                 {
-                    cur_path.front() = i;
+                    cur_path.back() = i;
                     if (i > 0)
                         cur_y += pt;
                     _children[i].render(matrix, color_matrix, style, active_window, win_always_active, x + ml, cur_y, effective_color,
@@ -630,9 +630,10 @@ public:
             }
         case WidgetLayout::Floating:
             {
-                for (auto& child : _children)
+                for (int i = 0; i < (int)_children.size(); i++)
                 {
-                    cur_path.front()++;
+                    cur_path.back() = i;
+                    auto& child = _children[i];
                     child.render(matrix, color_matrix, style, active_window, win_always_active, x + child._xy.x() + ml,
                                  y + child._xy.y() + mt, effective_color, false, cur_path, selected_path);
                 }
@@ -711,7 +712,7 @@ void find_nearest_selectable_recursive(const std::vector<Widget<TChar>>& widgets
     path.push_back(0);
     for (int i = 0; i < (int)widgets.size(); ++i)
     {
-        path.front() = i;
+        path.back() = i;
         // Skip if this is the currently selected widget
         if (!current_sel_path.empty() && path == current_sel_path) continue;
 
@@ -900,20 +901,17 @@ public:
             for (int d = (int)sel_path.size(); d >= 0; --d)
             {
                 std::vector<int> subpath(sel_path.begin(), sel_path.begin() + d);
-                Widget<TChar>* cur = root;
-                std::vector<Widget<TChar>>* cur_level = &root->_children;
 
-                // Inefficient logic
-                for (int i = 0; i < (int)subpath.size(); ++i)
+                // Inefficient logic : obtain pointer to widget from subpath (bottom-up)
+                Widget<TChar>* cur = root;
+                for (int idx : subpath)
                 {
-                    int idx = subpath[i];
-                    if (idx < 0 || idx >= (int)cur_level->size())
+                    if (idx < 0 || idx >= (int)cur->widgets_num())
                     {
                         cur = nullptr;
                         break;
                     }
-                    cur = &(*cur_level)[idx];
-                    cur_level = &cur->_children;
+                    cur = &cur->at(idx);
                 }
                 if (cur && cur->on_event && cur->on_event(cur, this, ev, subpath))
                 {
@@ -1156,6 +1154,15 @@ public:
         return c;
 #else
         return -1;
+#endif
+    }
+
+    static void bell()
+    {
+#ifdef CURSE_IS_POSIX
+        std::cout << "\a";
+#else
+        // make windows bell
 #endif
     }
 
